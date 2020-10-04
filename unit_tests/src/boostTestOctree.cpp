@@ -297,20 +297,17 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
     ++i;
   }
 
-  std::sort( arrPoints, arrPoints + numPoints, d7cA::comparePoints<double> );
+//  std::sort( arrPoints, arrPoints + numPoints, d7cA::comparePoints<double> );
 
-  for ( std::size_t i = 0; i < numPoints; ++i )
-    printf( "%lu\t%f\t%f\t%f\t%f\n", i, arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
+//  for ( std::size_t i = 0; i < numPoints; ++i )
+//    printf( "%lu\t%f\t%f\t%f\t%f\n", i, arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
  
   d7cA::Octree<d7cA::Point, double>  octree;
   octree.init( arrPoints, numPoints, d7cA::comparePoints<double> );
 
   const std::size_t  numElements  =  octree.getNumElements();
-  printf( "numElements = %lu\n", numElements );
 
   BOOST_CHECK_EQUAL( numElements, numPoints );
-
-  octree.print_();
 
   // test the Octree::find() method:
   std::uniform_real_distribution<>  distTolerance( 0, 3 );
@@ -329,7 +326,6 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
       const double  x4  =  arrPoints[ i ].x4();
       const d7cA::Point<double>  p( x1, x2, x3, x4 );
       const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, tolerance );
-      printf( "%lu\t%f\t%f\t%f\t%f\n", i, x1, x2, x3, x4 );
       if ( tolerance >= dist2( p, arrPoints[ i ] ) )
         BOOST_CHECK( nullptr != result );
       else
