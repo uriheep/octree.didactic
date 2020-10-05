@@ -128,6 +128,7 @@ Octree<H, T>::insert( const H<T>&  obj ) noexcept
   }
 
 //  OctreeObj<H, T>  *pFound  =  find( obj );
+
 //  if ( nullptr != pFound )
 //    return; // no dublicates allowed
 
@@ -1363,6 +1364,15 @@ struct  Point {
     T  x2() const { return  x2_; }
     T  x3() const { return  x3_; }
     T  x4() const { return  x4_; }
+    Point&  operator=( const Point&  that ) {
+      if ( &that == this )
+       return  *this;
+      x1_  =  that.x1();
+      x2_  =  that.x2();
+      x3_  =  that.x3();
+      x4_  =  that.x4();
+      return  *this;
+    }
     friend bool  operator==( const Point&  a, const Point&  b ) noexcept
     {
       if ( a.x1() == b.x1()
