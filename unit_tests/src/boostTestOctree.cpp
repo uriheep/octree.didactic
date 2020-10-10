@@ -26,12 +26,14 @@ BOOST_AUTO_TEST_CASE( testOctree0 )
   BOOST_CHECK_EQUAL( numElements, numElementsMustBe );
 
   const d7cA::Point<double>  point1( 1, 1, 1, 1 );
-  const d7cA::OctreeObj<d7cA::Point, double>  * const  pFound1  =  octree.find( point1 );
+  std::size_t  numOperations1  =  0;
+  const d7cA::OctreeObj<d7cA::Point, double>  * const  pFound1  =  octree.find( point1, numOperations1 );
 
   BOOST_CHECK_EQUAL( nullptr, pFound1 );
 
   const d7cA::Point<double>  point2;
-  const d7cA::OctreeObj<d7cA::Point, double>  * const  pFound2  =  octree.find( point2 );
+  std::size_t  numOperations2  =  0;
+  const d7cA::OctreeObj<d7cA::Point, double>  * const  pFound2  =  octree.find( point2, numOperations2 );
 
   BOOST_CHECK_EQUAL( nullptr, pFound2 );
 }
@@ -89,6 +91,28 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
   const d7cA::Point<double>  p10( 25, -48, -41, -7 );
 */
 /*
+  const d7cA::Point<double>  p1( 43, -47, -32, 29 );
+  const d7cA::Point<double>  p2( 46, -29, -13, 14 );
+  const d7cA::Point<double>  p3( 46, -20, -39, 25 );
+  const d7cA::Point<double>  p4( 46, 5, 3, 26 );
+  const d7cA::Point<double>  p5( 46, 8, 27, 33 );
+  const d7cA::Point<double>  p6( 46, 21, 19, 36 );
+  const d7cA::Point<double>  p7( 46, 30, 17, -40 );
+  const d7cA::Point<double>  p8( 46, 39, 15, -49 );
+  const d7cA::Point<double>  p9( 46, 39.35, -27, 39 );
+  const d7cA::Point<double>  p10( 47, -48, 29, 47 );
+ 
+  const d7cA::Point<double>  p1( -47, -41, -14, 4 );
+  const d7cA::Point<double>  p2( -40, -41, 38, -6 );
+  const d7cA::Point<double>  p3( -32, -24, -21, -42 );
+  const d7cA::Point<double>  p4( -30, -41, 28, 25 );
+  const d7cA::Point<double>  p5( -1.6, -41, -17, -27 );
+  const d7cA::Point<double>  p6( 3.09, -41, -45, -28 );
+  const d7cA::Point<double>  p7( 13, -41, 6, -9 );
+  const d7cA::Point<double>  p8( 36, -28, -26, -10 );
+  const d7cA::Point<double>  p9( 36, 1.9, -26, -10 );
+  const d7cA::Point<double>  p10( 36, 39, -26, -10 );
+
   arrPoints[ 0 ]  =  p1;
   arrPoints[ 1 ]  =  p2;
   arrPoints[ 2 ]  =  p3;
@@ -100,6 +124,7 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
   arrPoints[ 8 ]  =  p9;
   arrPoints[ 9 ]  =  p10;
 */
+
   for ( std::size_t i = 0; i < numPoints; )
   {
     const std::size_t  numPointsSameCoordValue  =  distInt( gen );
@@ -307,26 +332,46 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
   std::uniform_int_distribution<>   distVarChoice( 0, 4 );
   for ( std::size_t i = 0; i < numPoints; ++i )
   {
-    //const int  var  =  distVarChoice( gen );
-    //if ( 0 == var )
+    const int  var  =  0;//distVarChoice( gen );
+    if ( 0 == var )
     {
-      const double  tolerance  =  3;//distTolerance( gen );
-//      const double  variation  =  distVariation( gen );
-      const double  x1  =  arrPoints[ i ].x1();// + variation;
+      const double  tolerance  =  1.8;//distTolerance( gen );
+      const double  variation  =  1.24;//distVariation( gen );
+
+      const double  x1  =  arrPoints[ i ].x1() + variation;
       const double  x2  =  arrPoints[ i ].x2();
       const double  x3  =  arrPoints[ i ].x3();
       const double  x4  =  arrPoints[ i ].x4();
       const d7cA::Point<double>  p( x1, x2, x3, x4 );
-      const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, tolerance );
-      if ( tolerance >= dist2( p, arrPoints[ i ] ) )
+      std::size_t  numOperations  =  0;
+      const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, numOperations, tolerance );
+      // 'tolerance' is applied independently to each coordinate.
+      // Thus, multiply it by 4 and take sq-root:
+      if ( ( 4 * 4 * tolerance * tolerance ) >= dist2( p, arrPoints[ i ] ) )
       {
         BOOST_CHECK( nullptr != result );
+        if ( nullptr == result )
+        {
+          printf( "p = %f\t%f\t%f\t%f\n", x1, x2, x3, x4 );
+          printf( "pArr = %f\t%f\t%f\t%f\n", arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
+          printf( "tol = %f\t%f\n" , tolerance, dist2( p, arrPoints[ i ] ) );
+          //const d7cA::OctreeObj<d7cA::Point, double> * const  resultTmp  =  octree.find( p, tolerance );
+          printf( "result = %p\n", (void*)result );
+        }
       }
       else
-        BOOST_CHECK( nullptr == result );
+        {
+          BOOST_CHECK( nullptr == result );
+          printf( "p2 = %f\t%f\t%f\t%f\n", x1, x2, x3, x4 );
+          printf( "pArr2 = %f\t%f\t%f\t%f\n", arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
+          printf( "tol2 = %f\t%f\n" , tolerance, dist2( p, arrPoints[ i ] ) );
+        }
     }
-
   }
+
+  std::sort( arrPoints, arrPoints + numPoints, d7cA::comparePoints<double> );
+  for ( std::size_t i = 0; i < numPoints; ++i )
+    printf( "%f\t%f\t%f\t%f\n", arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
 
   delete [] arrPoints;
   arrPoints  =  nullptr;
