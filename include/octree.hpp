@@ -49,8 +49,12 @@ class  Octree {
     ~Octree();
     const unsigned long&  getNumElements() const noexcept;
 //    const H<T>&  getClosest( const Octree&, const T& ) const;
-    OctreeObj<H, T> *  find( const H<T>&  ob, const T&  tolerance = 0 ) const noexcept;
-    long  getNumOperationsFind( const H<T>&  ob, const T&  tolerance = 0 ) const noexcept;
+    OctreeObj<H, T> *  find( const H<T>&              ob,
+                             std::size_t&             numOperations,
+                             const T&                 tolerance = 0,
+                             OctreeObj<H, T> * const  p = nullptr
+                           ) const noexcept;
+//    long  getNumOperationsFind( const H<T>&  ob, const T&  tolerance = 0 ) const noexcept;
   private:
     // copy-ctor and assignment operator are not allowed:
     Octree( const Octree& );
@@ -60,14 +64,40 @@ class  Octree {
     void  getRootToEndNode_() noexcept;
     void  deleteEndNodes_() noexcept;
     void  print_( OctreeObj<H, T> *  p = nullptr ) const noexcept;
+    OctreeObj<H, T> *  moveAlongNorthSouth_( const H<T>&,
+                                             const T&,
+                                             OctreeObj<H, T> * const,
+                                             std::size_t&
+                                           ) const noexcept;
+    OctreeObj<H, T> *  moveAlongWestEast_( const H<T>&,
+                                           const T&,
+                                           OctreeObj<H, T> * const,
+                                           std::size_t&
+                                         ) const noexcept;
+    OctreeObj<H, T> *  moveAlongNWSE_( const H<T>&,
+                                       const T&,
+                                       OctreeObj<H, T> * const,
+                                       std::size_t&
+                                     ) const noexcept;   
+    OctreeObj<H, T> *  moveAlongSWNE_( const H<T>&,
+                                       const T&,
+                                       OctreeObj<H, T> * const,
+                                       std::size_t&
+                                     ) const noexcept;   
+    /*
     OctreeObj<H, T> *  moveInDirection_( OctreeObj<H, T>   *p,
                             const H<T>&       ob,
-                            const Direction&  direction
+                            const Direction&  direction,
+                            const T&          tolerance,//  =  T(),
+                            long&             numOperations
                           ) const noexcept;
     OctreeObj<H, T> *  multiMoveInDirection_( OctreeObj<H, T> *  p,
                                  const H<T>&        ob,
-                                 const Direction&   direction
+                                 const Direction&   direction,
+                                 const T&           tolerance,//  =  T(),
+                                 long&              numOperations
                                ) const noexcept;
+*/
   private:
     OctreeObj<H, T>  *root_;
     unsigned long    numElements_;
@@ -349,695 +379,441 @@ Octree<H, T>::getNumElements() const noexcept
 
 template<template<class> class  H, class T>
 OctreeObj<H, T> *
-Octree<H, T>::find( const H<T>&  ob, const T&  tolerance ) const noexcept
+Octree<H, T>::moveAlongNorthSouth_( const H<T>&              ob,
+                                    const T&                 tolerance,
+                                    OctreeObj<H, T> * const  pTmpIn,
+                                    std::size_t&             numOperations
+                                  ) const noexcept
 {
-  if ( nullptr == root_ )
-    return  root_; // error
+  if ( nullptr == pTmpIn )
+    return  nullptr;
 
-  const T  dist2Root  =  dist2( ob, root_->info );
-  if ( dist2Root <= tolerance )
-    return  root_;
-
-  OctreeObj<H, T> * pTmp  =  root_;
-
-  // account for eventual equal coordinate values:
-  if ( ob.x1() == pTmp->info.x1() )
+  OctreeObj<H, T> *  pTmp  =  pTmpIn;
+  if ( nullptr != pTmp->north
+    && nullptr != pTmp->south
+     )
   {
-    while ( nullptr != pTmp->south
-         && ob.x1() == pTmp->south->info.x1()
-          )
-    {
-      pTmp  =  pTmp->south;
-    }
-    while ( true )
-    {
-      if ( ob.x2() == pTmp->info.x2() )
-      {
-        while ( nullptr != pTmp->east
-             && ob.x2() == pTmp->east->info.x2()
-              )
-        {
-          pTmp  =  pTmp->east;
-        }
-        while ( true )
-        {
-          if ( ob.x3() == pTmp->info.x3() )
-          {
-            while ( nullptr != pTmp->se
-                 && ob.x3() == pTmp->se->info.x3()
-                  )
-            {
-              pTmp  =  pTmp->se;
-            }
-            while ( true )
-            {
-              if ( ob.x4() == pTmp->info.x4() )
-                return  pTmp;
-              pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-              const T  dist2Fin  =  dist2( ob, pTmp->info );
-              if ( dist2Fin <= tolerance )
-                return  pTmp;
-              if ( nullptr != pTmp->nw
-                && ob.x3() == pTmp->nw->info.x3()
-                 )
-              {
-                pTmp  =  pTmp->nw;
-              }
-              else
-                break;
-            }
-          }
-          else
-            pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::nw_se );
-          const T  dist2Fin  =  dist2( ob, pTmp->info );
-          if ( dist2Fin <= tolerance )
-            return  pTmp;
-          if ( nullptr != pTmp->west
-            && ob.x2() == pTmp->west->info.x2()
-             )
-          {
-            pTmp  =  pTmp->west;
-          }
-          else
-            break;
-        }
-      } // if ( ob.x2() == pTmp->info.x2() )
-      else
-        pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::west_east );
-      if ( nullptr != pTmp->north
-        && ob.x1() == pTmp->north->info.x1()
-         )
-      {
-        pTmp  =  pTmp->north;
-      }
-      else
-        break;
-    } // while ()
-    pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::nw_se );
-    pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-    const T  dist2Fin  =  dist2( ob, pTmp->info );
-    if ( dist2Fin <= tolerance )
-      return  pTmp;
-  } // if ( ob.x1() == pTmp->info.x1() )
-
-  pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::north_south );
-
-  while ( true )
-  {
-    if ( ob.x2() == pTmp->info.x2() )
-    {
-      while ( nullptr != pTmp->east
-           && ob.x2() == pTmp->east->info.x2()
-            )
-      {
-        pTmp  =  pTmp->east;
-      }
-      while ( true )
-      {
-        if ( ob.x3() == pTmp->info.x3() )
-        {
-          while ( nullptr != pTmp->se
-               && ob.x3() == pTmp->se->info.x3()
-                )
-          {
-            pTmp  =  pTmp->se;
-          }
-          while ( true )
-          {
-            if ( ob.x4() == pTmp->info.x4() )
-              return  pTmp;
-            pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-            const T  dist2Fin  =  dist2( ob, pTmp->info );
-            if ( dist2Fin <= tolerance )
-              return  pTmp;
-            if ( nullptr != pTmp->nw
-              && ob.x3() == pTmp->nw->info.x3()
-               )
-            {
-              pTmp  =  pTmp->nw;
-            }
-            else
-              break;
-          }
-        }
-        else
-          pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::nw_se );
-        const T  dist2Fin  =  dist2( ob, pTmp->info );
-        if ( dist2Fin <= tolerance )
-          return  pTmp;
-        if ( nullptr != pTmp->west
-          && ob.x2() == pTmp->west->info.x2()
-           )
-        {
-          pTmp  =  pTmp->west;
-        }
-        else
-          break;
-      }
-    } // if ( ob.x2() == pTmp->info.x2() )
-
-    if ( nullptr != pTmp->north
-      && ob.x1() == pTmp->north->info.x1()
-       )
+    if ( std::abs( ob.x1() - pTmp->south->info.x1() ) > std::abs( ob.x1() - pTmp->north->info.x1() ) )
     {
       pTmp  =  pTmp->north;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
     }
-    else
-      break;
-  } // while ()
-
-  pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::west_east );
-
-  while ( true )
-  {
-    if ( ob.x3() == pTmp->info.x3() )
+    if ( std::abs( ob.x1() - pTmp->south->info.x1() ) < std::abs( ob.x1() - pTmp->north->info.x1() ) )
     {
-      while ( nullptr != pTmp->se
-           && ob.x3() == pTmp->se->info.x3()
-            )
-      {
-        pTmp  =  pTmp->se;
-      }
-      while ( true )
-      {
-        if ( ob.x4() == pTmp->info.x4() )
-          return  pTmp;
-        pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-        const T  dist2Fin  =  dist2( ob, pTmp->info );
-        if ( dist2Fin <= tolerance )
-          return  pTmp;
-        if ( nullptr != pTmp->nw
-          && ob.x3() == pTmp->nw->info.x3()
-           )
-        {
-          pTmp  =  pTmp->nw;
-        }
-        else
-          break;
-      }
+      pTmp  =  pTmp->south;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
     }
-    if ( nullptr != pTmp->west
-      && ob.x2() == pTmp->west->info.x2()
-       )
+    if ( std::abs( ob.x1() - pTmp->south->info.x1() ) == std::abs( ob.x1() - pTmp->north->info.x1() ) )
+    {
+      pTmp  =  pTmp->south;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        pTmp  =  pTmp1;
+      const T  distTmp1  =  dist2( ob, pTmp->info );
+      if ( distTmp1 <= 16 * tolerance * tolerance )
+        return  pTmp;
+      // ******
+      pTmp  =  pTmpIn;
+      pTmp  =  pTmp->north;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp2  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp2 )
+        pTmp  =  pTmp2;
+      const T  distTmp2  =  dist2( ob, pTmp->info );
+      if ( distTmp2 <= 16 * tolerance * tolerance )
+        return  pTmp;
+
+      return  distTmp1 <= distTmp2 ? ( nullptr == pTmp1 ? pTmpIn : pTmp1 ) : ( nullptr == pTmp2 ? pTmpIn : pTmp2 );
+    }
+  }
+  if ( nullptr == pTmp->north
+    && nullptr != pTmp->south
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->south->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->south;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  if ( nullptr != pTmp->north
+    && nullptr == pTmp->south
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->north->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->north;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  return  pTmp; // not found
+}
+
+
+template<template<class> class  H, class T>
+OctreeObj<H, T> *
+Octree<H, T>::moveAlongWestEast_( const H<T>&              ob,
+                                  const T&                 tolerance,
+                                  OctreeObj<H, T> * const  pTmpIn,
+                                  std::size_t&             numOperations
+                                ) const noexcept
+{
+  if ( nullptr == pTmpIn )
+    return  nullptr;
+
+  OctreeObj<H, T> *  pTmp  =  pTmpIn;
+  if ( nullptr != pTmp->west
+    && nullptr != pTmp->east
+     )
+  {
+    if ( std::abs( ob.x1() - pTmp->east->info.x1() ) > std::abs( ob.x1() - pTmp->west->info.x1() ) )
     {
       pTmp  =  pTmp->west;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
+    }
+    if ( std::abs( ob.x1() - pTmp->east->info.x1() ) < std::abs( ob.x1() - pTmp->west->info.x1() ) )
+    {
+      pTmp  =  pTmp->east;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
+    }
+    if ( std::abs( ob.x1() - pTmp->east->info.x1() ) == std::abs( ob.x1() - pTmp->west->info.x1() ) )
+    {
+      pTmp  =  pTmp->east;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        pTmp  =  pTmp1;
+      const T  distTmp1  =  dist2( ob, pTmp->info );
+      if ( distTmp1 <= 16 * tolerance * tolerance )
+        return  pTmp;
+      // ******
+      pTmp  =  pTmpIn;
+      pTmp  =  pTmp->west;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp2  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp2 )
+        pTmp  =  pTmp2;
+      const T  distTmp2  =  dist2( ob, pTmp->info );
+      if ( distTmp2 <= 16 * tolerance * tolerance )
+        return  pTmp;
+
+      return  distTmp1 <= distTmp2 ? ( nullptr == pTmp1 ? pTmpIn : pTmp1 ) : ( nullptr == pTmp2 ? pTmpIn : pTmp2 );
+    }
+  }
+  if ( nullptr == pTmp->west
+    && nullptr != pTmp->east
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->east->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->east;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  if ( nullptr != pTmp->west
+    && nullptr == pTmp->east
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->west->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->west;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  return  pTmp; // not found
+}
+
+
+template<template<class> class  H, class T>
+OctreeObj<H, T> *
+Octree<H, T>::moveAlongNWSE_( const H<T>&              ob,
+                              const T&                 tolerance,
+                              OctreeObj<H, T> * const  pTmpIn,
+                              std::size_t&             numOperations
+                            ) const noexcept
+{
+  if ( nullptr == pTmpIn )
+    return  nullptr;
+
+  OctreeObj<H, T> *  pTmp  =  pTmpIn;
+  if ( nullptr != pTmp->nw
+    && nullptr != pTmp->se
+     )
+  {
+    if ( std::abs( ob.x1() - pTmp->se->info.x1() ) > std::abs( ob.x1() - pTmp->nw->info.x1() ) )
+    {
+      pTmp  =  pTmp->nw;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
+    }
+    if ( std::abs( ob.x1() - pTmp->se->info.x1() ) < std::abs( ob.x1() - pTmp->nw->info.x1() ) )
+    {
+      pTmp  =  pTmp->se;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
+    }
+    if ( std::abs( ob.x1() - pTmp->se->info.x1() ) == std::abs( ob.x1() - pTmp->nw->info.x1() ) )
+    {
+      pTmp  =  pTmp->se;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        pTmp  =  pTmp1;
+      const T  distTmp1  =  dist2( ob, pTmp->info );
+      if ( distTmp1 <= 16 * tolerance * tolerance )
+        return  pTmp;
+      // ******
+      pTmp  =  pTmpIn;
+      pTmp  =  pTmp->nw;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp2  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp2 )
+        pTmp  =  pTmp2;
+      const T  distTmp2  =  dist2( ob, pTmp->info );
+      if ( distTmp2 <= 16 * tolerance * tolerance )
+        return  pTmp;
+
+      return  distTmp1 <= distTmp2 ? ( nullptr == pTmp1 ? pTmpIn : pTmp1 ) : ( nullptr == pTmp2 ? pTmpIn : pTmp2 );
+    }
+  }
+  if ( nullptr == pTmp->nw
+    && nullptr != pTmp->se
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->se->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->se;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  if ( nullptr != pTmp->nw
+    && nullptr == pTmp->se
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->nw->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->nw;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  return  pTmp; // not found
+}
+
+
+template<template<class> class  H, class T>
+OctreeObj<H, T> *
+Octree<H, T>::moveAlongSWNE_( const H<T>&              ob,
+                              const T&                 tolerance,
+                              OctreeObj<H, T> * const  pTmpIn,
+                              std::size_t&             numOperations
+                            ) const noexcept
+{
+  if ( nullptr == pTmpIn )
+    return  nullptr;
+
+  OctreeObj<H, T> *  pTmp  =  pTmpIn;
+  if ( nullptr != pTmp->sw
+    && nullptr != pTmp->ne
+     )
+  {
+    if ( std::abs( ob.x1() - pTmp->ne->info.x1() ) > std::abs( ob.x1() - pTmp->sw->info.x1() ) )
+    {
+      pTmp  =  pTmp->sw;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
+    }
+    if ( std::abs( ob.x1() - pTmp->ne->info.x1() ) < std::abs( ob.x1() - pTmp->sw->info.x1() ) )
+    {
+      pTmp  =  pTmp->ne;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        return  pTmp1;
+      return  pTmp;
+    }
+    if ( std::abs( ob.x1() - pTmp->ne->info.x1() ) == std::abs( ob.x1() - pTmp->sw->info.x1() ) )
+    {
+      pTmp  =  pTmp->ne;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp1 )
+        pTmp  =  pTmp1;
+      const T  distTmp1  =  dist2( ob, pTmp->info );
+      if ( distTmp1 <= 16 * tolerance * tolerance )
+        return  pTmp;
+      // ******
+      pTmp  =  pTmpIn;
+      pTmp  =  pTmp->sw;
+      ++numOperations;
+      OctreeObj<H, T> * const  pTmp2  =  find( ob, numOperations, tolerance, pTmp );
+      if ( nullptr != pTmp2 )
+        pTmp  =  pTmp2;
+      const T  distTmp2  =  dist2( ob, pTmp->info );
+      if ( distTmp2 <= 16 * tolerance * tolerance )
+        return  pTmp;
+
+      return  distTmp1 <= distTmp2 ? ( nullptr == pTmp1 ? pTmpIn : pTmp1 ) : ( nullptr == pTmp2 ? pTmpIn : pTmp2 );
+    }
+  }
+  if ( nullptr == pTmp->sw
+    && nullptr != pTmp->ne
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->ne->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->ne;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  if ( nullptr != pTmp->sw
+    && nullptr == pTmp->ne
+    && std::abs( ob.x1() - pTmp->info.x1() ) > std::abs( ob.x1() - pTmp->sw->info.x1() )
+     )
+  {
+    pTmp  =  pTmp->sw;
+    ++numOperations;
+    OctreeObj<H, T> * const  pTmp1  =  find( ob, numOperations, tolerance, pTmp );
+    if ( nullptr != pTmp1 )
+      return  pTmp1;
+    return  pTmp;
+  }
+  else
+    return  pTmp; // not found
+  return  pTmp; // not found
+}
+
+
+template<template<class> class  H, class T>
+OctreeObj<H, T> *
+Octree<H, T>::find( const H<T>&              ob,
+                    std::size_t&             numOperations,
+                    const T&                 tolerance,
+                    OctreeObj<H, T> * const  pInit
+                  ) const noexcept
+{
+  OctreeObj<H, T> * pTmp  =  pInit;
+  if ( nullptr == pInit )
+    pTmp  =  root_;
+
+  if ( nullptr == root_ )
+    return  root_; // not found
+
+  const T  dist  =  dist2( ob, pTmp->info );
+  if ( dist <= 16 * tolerance * tolerance )
+    return  pTmp;
+
+  if ( nullptr != pTmp
+    && tolerance >= std::abs( ob.x1() - pTmp->info.x1() )
+     )
+  {
+    if ( nullptr != pTmp
+      && tolerance >= std::abs( ob.x2() - pTmp->info.x2() )
+       )
+    {
+      if ( nullptr != pTmp
+        && tolerance >= std::abs( ob.x3() - pTmp->info.x3() )
+         )
+      {
+        if ( nullptr != pTmp
+          && tolerance >= std::abs( ob.x4() - pTmp->info.x4() )
+           )
+          return  pTmp;
+        else
+          {
+            OctreeObj<H, T> * const  pTmp4  =  moveAlongSWNE_( ob, tolerance, pTmp, numOperations );
+            if ( nullptr != pTmp4 )
+              pTmp  =  pTmp4;
+            //const T  dist  =  dist2( ob, pTmp->info );
+            //if ( dist <= 16 * tolerance * tolerance )
+              return  pTmp;
+          }
+      }
+      else
+        {
+          OctreeObj<H, T> * const  pTmp3  =  moveAlongNWSE_( ob, tolerance, pTmp, numOperations );
+          if ( nullptr != pTmp3 )
+            pTmp  =  pTmp3;
+          //const T  dist  =  dist2( ob, pTmp->info );
+          //if ( dist <= 16 * tolerance * tolerance )
+            return  pTmp;
+	}
     }
     else
-      break;
+      {
+        OctreeObj<H, T> * const  pTmp2  =  moveAlongWestEast_( ob, tolerance, pTmp, numOperations );
+        if ( nullptr != pTmp2 )
+	  pTmp  =  pTmp2;
+        //const T  dist  =  dist2( ob, pTmp->info );
+        //if ( dist <= 16 * tolerance * tolerance )
+          return  pTmp;
+      }
   }
-
-  pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-
-  const T  dist2Fin  =  dist2( ob, pTmp->info );
-  if ( dist2Fin <= tolerance )
-    return  pTmp;
+  else
+    {
+      OctreeObj<H, T> * const  pTmp1  =  moveAlongNorthSouth_( ob, tolerance, pTmp, numOperations ); 
+      if ( nullptr != pTmp1 )
+        pTmp  =  pTmp1;
+      //const T  dist  =  dist2( ob, pTmp->info );
+      //if ( dist <= 16 * tolerance * tolerance )
+        return  pTmp;
+    }
 
   return  nullptr; // not found
 }
-
-
-template<template<class> class  H, class T>
-long
-Octree<H, T>::getNumOperationsFind( const H<T>&  ob, const T&  tolerance ) const noexcept
-{
-  if ( nullptr == root_ )
-    return  -1; // empty tree
-
-  const T  dist2Root  =  dist2( ob, root_->info );
-  if ( dist2Root <= tolerance )
-    return  0;
-
-  OctreeObj<H, T> * pTmp  =  root_;
-  long  result  =  0;
-  // account for eventual equal coordinate values:
-  if ( ob.x1() == pTmp->info.x1() )
-  {
-    while ( nullptr != pTmp->south
-         && ob.x1() == pTmp->south->info.x1()
-          )
-    {
-      pTmp  =  pTmp->south;
-      ++result;
-    }
-    while ( true )
-    {
-      if ( ob.x2() == pTmp->info.x2() )
-      {
-        while ( nullptr != pTmp->east
-             && ob.x2() == pTmp->east->info.x2()
-              )
-        {
-          pTmp  =  pTmp->east;
-          ++result;
-        }
-        while ( true )
-        {
-          if ( ob.x3() == pTmp->info.x3() )
-          {
-            while ( nullptr != pTmp->se
-                 && ob.x3() == pTmp->se->info.x3()
-                  )
-            {
-              pTmp  =  pTmp->se;
-              ++result;
-            }
-            while ( true )
-            {
-              if ( ob.x4() == pTmp->info.x4() )
-                return  result;
-              pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-              const T  dist2Fin  =  dist2( ob, pTmp->info );
-              if ( dist2Fin <= tolerance )
-                return  result;
-              if ( nullptr != pTmp->nw
-                && ob.x3() == pTmp->nw->info.x3()
-                 )
-              {
-                pTmp  =  pTmp->nw;
-                ++result;
-              }
-              else
-                break;
-            }
-          }
-          else
-            pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::nw_se );
-          const T  dist2Fin  =  dist2( ob, pTmp->info );
-          if ( dist2Fin <= tolerance )
-            return  result;
-          if ( nullptr != pTmp->west
-            && ob.x2() == pTmp->west->info.x2()
-             )
-          {
-            pTmp  =  pTmp->west;
-            ++result;    
-          }
-          else
-            break;
-        }
-      } // if ( ob.x2() == pTmp->info.x2() )
-      else
-        pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::west_east );
-      if ( nullptr != pTmp->north
-        && ob.x1() == pTmp->north->info.x1()
-         )
-      {
-        pTmp  =  pTmp->north;
-        ++result;
-      }
-      else
-        break;
-    } // while ()
-    pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::nw_se );
-    pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-    const T  dist2Fin  =  dist2( ob, pTmp->info );
-    if ( dist2Fin <= tolerance )
-      return  result;
-  } // if ( ob.x1() == pTmp->info.x1() )
-
-  pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::north_south );
-
-  while ( true )
-  {
-    if ( ob.x2() == pTmp->info.x2() )
-    {
-      while ( nullptr != pTmp->east
-           && ob.x2() == pTmp->east->info.x2()
-            )
-      {
-        pTmp  =  pTmp->east;
-        ++result;
-      }
-      while ( true )
-      {
-        if ( ob.x3() == pTmp->info.x3() )
-        {
-          while ( nullptr != pTmp->se
-               && ob.x3() == pTmp->se->info.x3()
-                )
-          {
-            pTmp  =  pTmp->se;
-            ++result;
-          }
-          while ( true )
-          {
-            if ( ob.x4() == pTmp->info.x4() )
-              return  result;
-            pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-            const T  dist2Fin  =  dist2( ob, pTmp->info );
-            if ( dist2Fin <= tolerance )
-              return  result;
-            if ( nullptr != pTmp->nw
-              && ob.x3() == pTmp->nw->info.x3()
-               )
-            {
-              pTmp  =  pTmp->nw;
-              ++result;
-            }
-            else
-              break;
-          }
-        }
-        else
-          pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::nw_se );
-        const T  dist2Fin  =  dist2( ob, pTmp->info );
-        if ( dist2Fin <= tolerance )
-          return  result;
-        if ( nullptr != pTmp->west
-          && ob.x2() == pTmp->west->info.x2()
-           )
-        {
-          pTmp  =  pTmp->west;
-          ++result;
-        }
-        else
-          break;
-      }
-    } // if ( ob.x2() == pTmp->info.x2() )
-
-    if ( nullptr != pTmp->north
-      && ob.x1() == pTmp->north->info.x1()
-       )
-    {
-      pTmp  =  pTmp->north;
-      ++result;
-    }
-    else
-      break;
-  } // while ()
-
-  pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::west_east );
-
-  while ( true )
-  {
-    if ( ob.x3() == pTmp->info.x3() )
-    {
-      while ( nullptr != pTmp->se
-           && ob.x3() == pTmp->se->info.x3()
-            )
-      {
-        pTmp  =  pTmp->se;
-        ++result;
-      }
-      while ( true )
-      {
-        if ( ob.x4() == pTmp->info.x4() )
-          return  result;
-        pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-        const T  dist2Fin  =  dist2( ob, pTmp->info );
-        if ( dist2Fin <= tolerance )
-          return  result;
-        if ( nullptr != pTmp->nw
-          && ob.x3() == pTmp->nw->info.x3()
-           )
-        {
-          pTmp  =  pTmp->nw;
-          ++result;
-        }
-        else
-          break;
-      }
-    }
-    if ( nullptr != pTmp->west
-      && ob.x2() == pTmp->west->info.x2()
-       )
-    {
-      pTmp  =  pTmp->west;
-      ++result;
-    }
-    else
-      break;
-  }
-
-  pTmp  =  multiMoveInDirection_( pTmp, ob, Direction::sw_ne );
-
-  const T  dist2Fin  =  dist2( ob, pTmp->info );
-  if ( dist2Fin <= tolerance )
-    return  result;
-
-  return  -1; // not found
-}
-
-
-template<template<class> class  H, class T>
-OctreeObj<H, T> *
-Octree<H, T>::moveInDirection_( OctreeObj<H, T> *  p,
-                                const H<T>&        ob,
-                                const Direction&   direction
-                              ) const noexcept
-{
-  if ( nullptr == p )
-    return  nullptr;
-
-  switch ( direction )
-  {
-    case north : {
-      const T  init  =  p->info.x1();
-      while ( nullptr != p->north
-           && ob.x1() >= p->north->info.x1()
-            )
-      {
-        p  =  p->north;
-        if ( ob.x1() > init
-          && ob.x1() == p->info.x1()
-           )
-          break;
-      }
-      break;
-    }
-    case south : {
-      const T  init  =  p->info.x1();
-      while ( nullptr != p->south
-           && ob.x1() <= p->south->info.x1()
-            )
-      {
-        p  =  p->south;
-        if ( ob.x1() < init
-          && ob.x1() == p->info.x1()
-           )
-          break;
-      }
-      break;
-    }
-    case west : {
-      const T  init  =  p->info.x2();
-      while ( nullptr != p->west
-           && ob.x2() >= p->west->info.x2()
-            )
-      {
-        p  =  p->west;
-        if ( ob.x2() > init
-          && ob.x2() == p->info.x2()
-           )
-          break;
-      }
-      break;
-    }
-    case east : {
-      const T  init  =  p->info.x2();
-      while ( nullptr != p->east
-           && ob.x2() <= p->east->info.x2()
-            )
-      {
-        p  =  p->east;
-        if ( ob.x2() < init
-          && ob.x2() == p->info.x2()
-           )
-          break;
-      }
-      break;
-    }
-    case nw : {
-      const T  init  =  p->info.x3();
-      while ( nullptr != p->nw
-           && ob.x3() >= p->nw->info.x3()
-            )
-      {
-        p  =  p->nw;
-        if ( ob.x3() > init
-          && ob.x3() == p->info.x3()
-           )
-          break;
-      }
-      break;
-    }
-    case se : {
-      const T  init  =  p->info.x3();
-      while ( nullptr != p->se
-           && ob.x3() <= p->se->info.x3()
-            )
-      {
-        p  =  p->se;
-	if ( ob.x3() < init
-          && ob.x3() == p->info.x3()
-           )
-          break;
-      }
-      break;
-    }
-    case sw : {
-      const T  init  =  p->info.x4();
-      while ( nullptr != p->sw
-           && ob.x4() >= p->sw->info.x4()
-            )
-      {
-        p  =  p->sw;
-        if ( ob.x4() > init
-          && ob.x4() == p->info.x4()
-           )
-          break;
-      }
-      break;
-    }
-    case ne : {
-      const T  init  =  p->info.x4();
-      while ( nullptr != p->ne
-           && ob.x4() <= p->ne->info.x4()
-            )
-      {
-        p  =  p->ne;
-        if ( ob.x4() < init
-          && ob.x4() == p->info.x4()
-           )
-          break;
-      }
-      break;
-    }
-    default : { break; }
-  } // switch ()
-  return  p;
-}
-
-
-template<template<class> class  H, class T>
-OctreeObj<H, T> *
-Octree<H, T>::multiMoveInDirection_( OctreeObj<H, T> *  pTmp,
-                                     const H<T>&        ob,
-                                     const Direction&   direction
-                                   ) const noexcept
-{
-  if ( nullptr == pTmp )
-    return  nullptr;
-
-  switch ( direction )
-  {
-    case north_south : {
-      const T  init  =  pTmp->info.x1();
-      if ( ob.x1() > pTmp->info.x1() )
-        while ( nullptr != pTmp->north
-             && ob.x1() > pTmp->info.x1()
-             && ob.x1() >= pTmp->north->info.x1() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::north );
-          if ( ob.x1() > init
-            && ob.x1() == pTmp->info.x1()// == init
-             )
-            break;
-        }
-      else
-        while ( nullptr != pTmp->south
-             && ob.x1() < pTmp->info.x1()
-             && ob.x1() <= pTmp->south->info.x1() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::south );
-	  if ( ob.x1() < init
-            && ob.x1() == pTmp->info.x1()// == init
-             )
-            break;
-        }
-      break;
-    }
-    case west_east : {
-      const T  init  =  pTmp->info.x2();
-      if ( ob.x2() > pTmp->info.x2() )
-        while ( nullptr != pTmp->west
-             && ob.x2() > pTmp->info.x2()
-             && ob.x2() >= pTmp->west->info.x2() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::west );
-          if ( ob.x2() > init
-            && ob.x2() == pTmp->info.x2()// == init
-             )
-            break;
-        }
-      else
-        while ( nullptr != pTmp->east
-             && ob.x2() < pTmp->info.x2()
-             && ob.x2() <= pTmp->east->info.x2() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::east );
-          if ( ob.x2() < init
-            && ob.x2() == pTmp->info.x2()// == init
-             )
-            break;
-        }
-      break;
-    }
-    case nw_se : {
-      const T  init  =  pTmp->info.x3();
-      if ( ob.x3() > pTmp->info.x3() )
-        while ( nullptr != pTmp->nw
-             && ob.x3() > pTmp->info.x3()
-             && ob.x3() >= pTmp->nw->info.x3() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::nw );
-          if ( ob.x3() > init
-            && ob.x3() == pTmp->info.x3()// == init
-             )
-            break;
-        }
-      else
-        while ( nullptr != pTmp->se
-             && ob.x3() < pTmp->info.x3()
-             && ob.x3() <= pTmp->se->info.x3() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::se );
-          if ( ob.x3() < init
-            && ob.x3() == pTmp->info.x3()// == init
-             )
-            break;
-        }
-      break;
-    }
-    case sw_ne : {
-      const T  init  =  ob.x4();
-      if ( ob.x4() > pTmp->info.x4() )
-        while ( nullptr != pTmp->sw
-             && ob.x4() > pTmp->info.x4()
-             && ob.x4() >= pTmp->sw->info.x4() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::sw );
-          if ( ob.x4() > init
-            && ob.x4() == pTmp->info.x4()// == init
-             )
-            break;
-        }
-      else
-        while ( nullptr != pTmp->ne
-             && ob.x4() < pTmp->info.x4()
-             && ob.x4() <= pTmp->ne->info.x4() )
-        {
-          pTmp  =  moveInDirection_( pTmp, ob, Direction::ne );
-          if ( ob.x4() < init
-            && ob.x4() == pTmp->info.x4()// == init
-             )
-            break;
-        }
-      break;
-    }
-    default : { break; }
-  } // switch ()
-  return  pTmp;
-}
-
-
-
-
-
-
-
-
-
 
 
 template<template<class> class  H, class T>
