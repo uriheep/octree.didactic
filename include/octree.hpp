@@ -788,7 +788,10 @@ Octree<H,T>::findIn_WestEast_NWSE_SWNE_( const H<T>&              ob,
     if ( nullptr != pTmp->west
       && tolerance >= std::abs( ob.x2() - pTmp->west->info.x2() )
        )
+    {
       pTmp  =  pTmp->west;
+      ++numOperations;
+    }
     else
       break;
   }
