@@ -66,64 +66,6 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
   std::uniform_int_distribution<>   distCoord( 0, 14 );
   constexpr std::size_t  numPoints  =  10000;
   d7cA::Point<double>  * arrPoints  =  new d7cA::Point<double> [ numPoints ];
-/*
-  const d7cA::Point<double>  p1( -45, -12, -7, -42 );
-  const d7cA::Point<double>  p2( -45, -12, -7, 4 );
-  const d7cA::Point<double>  p3( -45, -12, -7, 20 );
-  const d7cA::Point<double>  p4( -39, -16, 0, 36 );
-  const d7cA::Point<double>  p5( -30, 22, -40, -30 );
-  const d7cA::Point<double>  p6( -27, 38.17, -40, -30 );
-  const d7cA::Point<double>  p7( 0, 22, -40, -30 );
-  const d7cA::Point<double>  p8( 5, 38.84, -40, -30 );
-  const d7cA::Point<double>  p9( 26, -18, -40, -30 );
-  const d7cA::Point<double>  p10( 41, 1.35, -40, -30 );
-*/
-/*
-  const d7cA::Point<double>  p1( -33, 48, -33, 9 );
-  const d7cA::Point<double>  p2( -23, 27, 21, -13 );
-  const d7cA::Point<double>  p3( -6, -37, -4, 13 );
-  const d7cA::Point<double>  p4( -6, -32, -14, 22 );
-  const d7cA::Point<double>  p5( -6, -28, -21, -41 );
-  const d7cA::Point<double>  p6( -6, -20, -38, 41 );
-  const d7cA::Point<double>  p7( -6, 4, 31, 46 );
-  const d7cA::Point<double>  p8( -6, 43, 31, -42 );
-  const d7cA::Point<double>  p9( -6, 45, -24, -10 );
-  const d7cA::Point<double>  p10( 25, -48, -41, -7 );
-*/
-/*
-  const d7cA::Point<double>  p1( 43, -47, -32, 29 );
-  const d7cA::Point<double>  p2( 46, -29, -13, 14 );
-  const d7cA::Point<double>  p3( 46, -20, -39, 25 );
-  const d7cA::Point<double>  p4( 46, 5, 3, 26 );
-  const d7cA::Point<double>  p5( 46, 8, 27, 33 );
-  const d7cA::Point<double>  p6( 46, 21, 19, 36 );
-  const d7cA::Point<double>  p7( 46, 30, 17, -40 );
-  const d7cA::Point<double>  p8( 46, 39, 15, -49 );
-  const d7cA::Point<double>  p9( 46, 39.35, -27, 39 );
-  const d7cA::Point<double>  p10( 47, -48, 29, 47 );
- 
-  const d7cA::Point<double>  p1( -47, -41, -14, 4 );
-  const d7cA::Point<double>  p2( -40, -41, 38, -6 );
-  const d7cA::Point<double>  p3( -32, -24, -21, -42 );
-  const d7cA::Point<double>  p4( -30, -41, 28, 25 );
-  const d7cA::Point<double>  p5( -1.6, -41, -17, -27 );
-  const d7cA::Point<double>  p6( 3.09, -41, -45, -28 );
-  const d7cA::Point<double>  p7( 13, -41, 6, -9 );
-  const d7cA::Point<double>  p8( 36, -28, -26, -10 );
-  const d7cA::Point<double>  p9( 36, 1.9, -26, -10 );
-  const d7cA::Point<double>  p10( 36, 39, -26, -10 );
-
-  arrPoints[ 0 ]  =  p1;
-  arrPoints[ 1 ]  =  p2;
-  arrPoints[ 2 ]  =  p3;
-  arrPoints[ 3 ]  =  p4;
-  arrPoints[ 4 ]  =  p5;
-  arrPoints[ 5 ]  =  p6;
-  arrPoints[ 6 ]  =  p7;
-  arrPoints[ 7 ]  =  p8;
-  arrPoints[ 8 ]  =  p9;
-  arrPoints[ 9 ]  =  p10;
-*/
 
   for ( std::size_t i = 0; i < numPoints; )
   {
@@ -311,17 +253,23 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
         ++i;
       }
     }
-    const double  x1  =  dist( gen );
-    const double  x2  =  dist( gen );
-    const double  x3  =  dist( gen );
-    const double  x4  =  dist( gen );
-    const d7cA::Point<double>  p( x1, x2, x3, x4 );
-    arrPoints[ i ]  =  p;
-    ++i;
+    if ( 14 == indexCoord )
+    {
+      const double  x1  =  dist( gen );
+      const double  x2  =  dist( gen );
+      const double  x3  =  dist( gen );
+      const double  x4  =  dist( gen );
+      const d7cA::Point<double>  p( x1, x2, x3, x4 );
+      if ( i < numPoints )
+        arrPoints[ i ]  =  p;
+      ++i;
+    }
   }
 
   d7cA::Octree<d7cA::Point, double>  octree;
   octree.init( arrPoints, numPoints, d7cA::comparePoints<double> );
+
+//  octree.print_();
 
   const std::size_t  numElements  =  octree.getNumElements();
   BOOST_CHECK_EQUAL( numElements, numPoints );
@@ -333,10 +281,10 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
   for ( std::size_t i = 0; i < numPoints; ++i )
   {
     const int  var  =  0;//distVarChoice( gen );
-    if ( 0 == var )
+    if ( 0 == var ) // only x1 is variated
     {
-      const double  tolerance  =  1.8;//distTolerance( gen );
-      const double  variation  =  1.24;//distVariation( gen );
+      const double  tolerance  =  distTolerance( gen );//1.8
+      const double  variation  =  distVariation( gen );//1.24
 
       const double  x1  =  arrPoints[ i ].x1() + variation;
       const double  x2  =  arrPoints[ i ].x2();
@@ -345,36 +293,183 @@ BOOST_AUTO_TEST_CASE( testOctree1 )
       const d7cA::Point<double>  p( x1, x2, x3, x4 );
       std::size_t  numOperations  =  0;
       const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, numOperations, tolerance );
+
+//printf( "numOperations = %lu\n", numOperations );
+
       // 'tolerance' is applied independently to each coordinate.
-      // Thus, multiply it by 4 and take sq-root:
-      if ( ( 4 * 4 * tolerance * tolerance ) >= dist2( p, arrPoints[ i ] ) )
+      if ( tolerance >= std::abs( variation ) )
       {
         BOOST_CHECK( nullptr != result );
-        if ( nullptr == result )
-        {
-          printf( "p = %f\t%f\t%f\t%f\n", x1, x2, x3, x4 );
-          printf( "pArr = %f\t%f\t%f\t%f\n", arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
-          printf( "tol = %f\t%f\n" , tolerance, dist2( p, arrPoints[ i ] ) );
-          //const d7cA::OctreeObj<d7cA::Point, double> * const  resultTmp  =  octree.find( p, tolerance );
-          printf( "result = %p\n", (void*)result );
-        }
       }
       else
         {
-          BOOST_CHECK( nullptr == result );
-          printf( "p2 = %f\t%f\t%f\t%f\n", x1, x2, x3, x4 );
-          printf( "pArr2 = %f\t%f\t%f\t%f\n", arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
-          printf( "tol2 = %f\t%f\n" , tolerance, dist2( p, arrPoints[ i ] ) );
-        }
+          bool  someOtherPointAppearedWithinTolerance  =  false;
+          if ( nullptr != result )
+          {
+            if ( tolerance >= std::abs( p.x1() - result->info.x1() )
+              && tolerance >= std::abs( p.x2() - result->info.x2() )
+              && tolerance >= std::abs( p.x3() - result->info.x3() )
+              && tolerance >= std::abs( p.x4() - result->info.x4() )
+               )
+              someOtherPointAppearedWithinTolerance  =  true;
+          }
+          BOOST_CHECK( nullptr == result || true == someOtherPointAppearedWithinTolerance );
+	}
     }
-  }
+    // ************
+    if ( 1 == var ) // only x2 is variated
+    {
+      const double  tolerance  =  distTolerance( gen );
+      const double  variation  =  distVariation( gen );
 
+      const double  x1  =  arrPoints[ i ].x1();
+      const double  x2  =  arrPoints[ i ].x2() + variation;
+      const double  x3  =  arrPoints[ i ].x3();
+      const double  x4  =  arrPoints[ i ].x4();
+      const d7cA::Point<double>  p( x1, x2, x3, x4 );
+      std::size_t  numOperations  =  0;
+      const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, numOperations, tolerance );
+
+      // 'tolerance' is applied independently to each coordinate.
+      if ( tolerance >= std::abs( variation ) )
+      {
+        BOOST_CHECK( nullptr != result );
+      }
+      else
+        {
+          bool  someOtherPointAppearedWithinTolerance  =  false;
+          if ( nullptr != result )
+          {
+            if ( tolerance >= std::abs( p.x1() - result->info.x1() )
+              && tolerance >= std::abs( p.x2() - result->info.x2() )
+              && tolerance >= std::abs( p.x3() - result->info.x3() )
+              && tolerance >= std::abs( p.x4() - result->info.x4() )
+               )
+              someOtherPointAppearedWithinTolerance  =  true;
+          }
+          BOOST_CHECK( nullptr == result || true == someOtherPointAppearedWithinTolerance );
+	}
+    }
+    // ************
+    if ( 2 == var ) // only x3 is variated
+    {
+      const double  tolerance  =  distTolerance( gen );
+      const double  variation  =  distVariation( gen );
+
+      const double  x1  =  arrPoints[ i ].x1();
+      const double  x2  =  arrPoints[ i ].x2();
+      const double  x3  =  arrPoints[ i ].x3() + variation;
+      const double  x4  =  arrPoints[ i ].x4();
+      const d7cA::Point<double>  p( x1, x2, x3, x4 );
+      std::size_t  numOperations  =  0;
+      const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, numOperations, tolerance );
+
+      // 'tolerance' is applied independently to each coordinate.
+      if ( tolerance >= std::abs( variation ) )
+      {
+        BOOST_CHECK( nullptr != result );
+      }
+      else
+        {
+          bool  someOtherPointAppearedWithinTolerance  =  false;
+          if ( nullptr != result )
+          {
+            if ( tolerance >= std::abs( p.x1() - result->info.x1() )
+              && tolerance >= std::abs( p.x2() - result->info.x2() )
+              && tolerance >= std::abs( p.x3() - result->info.x3() )
+              && tolerance >= std::abs( p.x4() - result->info.x4() )
+               )
+              someOtherPointAppearedWithinTolerance  =  true;
+          }
+          BOOST_CHECK( nullptr == result || true == someOtherPointAppearedWithinTolerance );
+	}
+    }
+    // ************
+    if ( 3 == var ) // only x4 is variated
+    {
+      const double  tolerance  =  distTolerance( gen );
+      const double  variation  =  distVariation( gen );
+
+      const double  x1  =  arrPoints[ i ].x1();
+      const double  x2  =  arrPoints[ i ].x2();
+      const double  x3  =  arrPoints[ i ].x3();
+      const double  x4  =  arrPoints[ i ].x4() + variation;
+      const d7cA::Point<double>  p( x1, x2, x3, x4 );
+      std::size_t  numOperations  =  0;
+      const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, numOperations, tolerance );
+
+      // 'tolerance' is applied independently to each coordinate.
+      if ( tolerance >= std::abs( variation ) )
+      {
+        BOOST_CHECK( nullptr != result );
+      }
+      else
+        {
+          bool  someOtherPointAppearedWithinTolerance  =  false;
+          if ( nullptr != result )
+          {
+            if ( tolerance >= std::abs( p.x1() - result->info.x1() )
+              && tolerance >= std::abs( p.x2() - result->info.x2() )
+              && tolerance >= std::abs( p.x3() - result->info.x3() )
+              && tolerance >= std::abs( p.x4() - result->info.x4() )
+               )
+              someOtherPointAppearedWithinTolerance  =  true;
+          }
+          BOOST_CHECK( nullptr == result || true == someOtherPointAppearedWithinTolerance );
+	}
+    }
+    // ************
+    if ( 4 == var ) // all the x1, x2, x3 and x4 is variated independently
+    {
+      const double  tolerance  =  distTolerance( gen );
+      double  aVariation[ 4 ]  =  { 0, 0, 0, 0 };
+      for ( short i = 0; i < 4; ++i )
+        aVariation[ i ]  =  distVariation( gen );
+
+      const double  x1  =  arrPoints[ i ].x1() + aVariation[ 0 ];
+      const double  x2  =  arrPoints[ i ].x2() + aVariation[ 1 ];
+      const double  x3  =  arrPoints[ i ].x3() + aVariation[ 2 ];
+      const double  x4  =  arrPoints[ i ].x4() + aVariation[ 3 ];
+      const d7cA::Point<double>  p( x1, x2, x3, x4 );
+      std::size_t  numOperations  =  0;
+      const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, numOperations, tolerance );
+
+      double  variationMax  =  std::abs( aVariation[ 0 ] );
+      for ( short i = 1; i < 4; ++i )
+        if ( variationMax < std::abs( aVariation[ i ] ) )
+          variationMax  =  std::abs( aVariation[ i ] );
+      // 'tolerance' is applied independently to each coordinate.
+      if ( tolerance >= std::abs( variationMax ) )
+      {
+        BOOST_CHECK( nullptr != result );
+      }
+      else
+        {
+          bool  someOtherPointAppearedWithinTolerance  =  false;
+          if ( nullptr != result )
+          {
+            if ( tolerance >= std::abs( p.x1() - result->info.x1() )
+              && tolerance >= std::abs( p.x2() - result->info.x2() )
+              && tolerance >= std::abs( p.x3() - result->info.x3() )
+              && tolerance >= std::abs( p.x4() - result->info.x4() )
+               )
+              someOtherPointAppearedWithinTolerance  =  true;
+          }
+          BOOST_CHECK( nullptr == result || true == someOtherPointAppearedWithinTolerance );
+	}
+    }
+
+  }
+/*
   std::sort( arrPoints, arrPoints + numPoints, d7cA::comparePoints<double> );
   for ( std::size_t i = 0; i < numPoints; ++i )
     printf( "%f\t%f\t%f\t%f\n", arrPoints[ i ].x1(), arrPoints[ i ].x2(), arrPoints[ i ].x3(), arrPoints[ i ].x4() );
-
+*/
   delete [] arrPoints;
   arrPoints  =  nullptr;
 }
+
+
+
 
 BOOST_AUTO_TEST_SUITE_END()
