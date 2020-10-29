@@ -36,9 +36,6 @@ class  OctreeObj {
     OctreeObj  *se;
 };
 
-enum Direction : std::uint8_t {
-  north, south, west, east, nw, ne, sw, se, north_south, west_east, nw_se, sw_ne
-};
 
 template<template<class> class  H, class T>
 class  Octree {
@@ -54,8 +51,6 @@ class  Octree {
                              const T&                 tolerance = 0,
                              OctreeObj<H, T> * const  p = nullptr
                            ) const noexcept;
-//    long  getNumOperationsFind( const H<T>&  ob, const T&  tolerance = 0 ) const noexcept;
-    void  print_( OctreeObj<H, T> *  p = nullptr ) const noexcept;
   private:
     // copy-ctor and assignment operator are not allowed:
     Octree( const Octree& );
@@ -64,16 +59,11 @@ class  Octree {
     bool  checkEndNode_( const OctreeObj<H, T> * const ) const noexcept;
     void  getRootToEndNode_() noexcept;
     void  deleteEndNodes_() noexcept;
-//    void  print_( OctreeObj<H, T> *  p = nullptr ) const noexcept;
+    void  print_( OctreeObj<H, T> *  p = nullptr ) const noexcept;
     bool  isWithinTolerance_( const H<T>&              ob,
                               const T&                 tolerance,
                               OctreeObj<H, T> * const  pTmp
                             ) const noexcept;
-    OctreeObj<H, T> *  moveAlongNorthSouth_( const H<T>&,
-                                             const T&,
-                                             OctreeObj<H, T> * const,
-                                             std::size_t&
-                                           ) const noexcept;
     OctreeObj<H, T> *  moveAlongWestEast_( const H<T>&,
                                            const T&,
                                            OctreeObj<H, T> * const,
@@ -99,20 +89,6 @@ class  Octree {
                                                    const T&                 tolerance,
                                                    OctreeObj<H, T> * const  pInit
                                                  ) const noexcept;
-    /*
-    OctreeObj<H, T> *  moveInDirection_( OctreeObj<H, T>   *p,
-                            const H<T>&       ob,
-                            const Direction&  direction,
-                            const T&          tolerance,//  =  T(),
-                            long&             numOperations
-                          ) const noexcept;
-    OctreeObj<H, T> *  multiMoveInDirection_( OctreeObj<H, T> *  p,
-                                 const H<T>&        ob,
-                                 const Direction&   direction,
-                                 const T&           tolerance,//  =  T(),
-                                 long&              numOperations
-                               ) const noexcept;
-*/
   private:
     OctreeObj<H, T>  *root_;
     unsigned long    numElements_;
@@ -171,11 +147,6 @@ Octree<H, T>::insert( const H<T>&  obj ) noexcept
     ++numElements_;
     return;
   }
-
-//  OctreeObj<H, T>  *pFound  =  find( obj );
-
-//  if ( nullptr != pFound )
-//    return; // no dublicates allowed
 
   OctreeObj<H, T>  *pTmp  =  root_;
 
@@ -412,78 +383,6 @@ Octree<H, T>::isWithinTolerance_( const H<T>&              ob,
 
 template<template<class> class  H, class T>
 OctreeObj<H, T> *
-Octree<H, T>::moveAlongNorthSouth_( const H<T>&              ob,
-                                    const T&                 tolerance,
-                                    OctreeObj<H, T> * const  pTmpIn,
-                                    std::size_t&             numOperations
-                                  ) const noexcept
-{
-  if ( nullptr == pTmpIn )
-    return  nullptr;
-
-  if ( true == isWithinTolerance_( ob, tolerance, pTmpIn ) )
-    return  pTmpIn;
-
-  OctreeObj<H, T> *  pTmp  =  pTmpIn;
-
-  while ( nullptr != pTmp->north
-       && tolerance < std::abs( ob.x1() - pTmp->info.x1() )
-        )
-  {
-    pTmp  =  pTmp->north;
-    ++numOperations;
-    if ( true == isWithinTolerance_( ob, tolerance, pTmp ) )
-      return  pTmp;
-  }
-
-  OctreeObj<H, T> *  pTmp1  =  pTmp;
-
-  while ( nullptr != pTmp1->north
-       && tolerance >= std::abs( ob.x1() - pTmp1->north->info.x1() )
-        )
-  {
-    pTmp1  =  pTmp1->north;
-    ++numOperations;
-    if ( true == isWithinTolerance_( ob, tolerance, pTmp1 ) )
-      return  pTmp1;
-  }
-
-  if ( tolerance >= std::abs( ob.x1() - pTmp->info.x1() ) )
-    return  pTmp;
-
-  pTmp  =  pTmpIn;
-
-  while ( nullptr != pTmp->south
-       && tolerance < std::abs( ob.x1() - pTmp->info.x1() )
-        )
-  {
-    pTmp  =  pTmp->south;
-    ++numOperations;
-    if ( true == isWithinTolerance_( ob, tolerance, pTmp ) )
-      return  pTmp;
-  }
-
-  OctreeObj<H, T> *  pTmp2  =  pTmp;
-
-  while ( nullptr != pTmp2->south
-       && tolerance >= std::abs( ob.x1() - pTmp2->south->info.x1() )
-        )
-  {
-    pTmp2  =  pTmp2->south;
-    ++numOperations;
-    if ( true == isWithinTolerance_( ob, tolerance, pTmp2 ) )
-      return  pTmp2;
-  }
-
-  if ( tolerance >= std::abs( ob.x1() - pTmp->info.x1() ) )
-    return  pTmp;
-
-  return  pTmpIn; // not found
-}
-
-
-template<template<class> class  H, class T>
-OctreeObj<H, T> *
 Octree<H, T>::moveAlongWestEast_( const H<T>&              ob,
                                   const T&                 tolerance,
                                   OctreeObj<H, T> * const  pTmpIn,
@@ -662,9 +561,6 @@ Octree<H, T>::moveAlongSWNE_( const H<T>&              ob,
       return  pTmp;
   }
 
-//  if ( tolerance >= std::abs( ob.x4() - pTmp->info.x4() ) )
-//    return  pTmp;
-
   pTmp  =  pTmpIn;
 
   while ( nullptr != pTmp->ne
@@ -686,9 +582,6 @@ Octree<H, T>::moveAlongSWNE_( const H<T>&              ob,
     if ( true == isWithinTolerance_( ob, tolerance, pTmp ) )
       return  pTmp;
   }
-
-//  if ( tolerance >= std::abs( ob.x4() - pTmp->info.x4() ) )
-//    return  pTmp;
 
   return  pTmpIn; // not found
 }
