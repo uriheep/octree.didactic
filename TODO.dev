@@ -1,0 +1,6 @@
+1. balance the tree with respect to all directions.
+   ( current implementation performs balancing along the North-South direction only )
+
+2. account for potential dublicate entries 
+   ( i.e., when a tree already contains an element that is passed to be inserted;
+    in the current implementation such an element will be inserted next to its dublicate )
