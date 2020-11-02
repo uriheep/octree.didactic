@@ -554,4 +554,100 @@ BOOST_AUTO_TEST_CASE( testOctree3 )
 }
 
 
+BOOST_AUTO_TEST_CASE( testOctree4 )
+{
+  constexpr std::size_t  numPoints  =  53;
+  d7cA::Point<double>   arrPoints[ numPoints ];
+
+  arrPoints[ 0 ]  =  d7cA::Point<double>( 0, 0, 0, 0 );
+  arrPoints[ 1 ]  =  d7cA::Point<double>( 1, 0, 0, 0 );
+  arrPoints[ 2 ]  =  d7cA::Point<double>( -1, 0, 0, 0 );
+  arrPoints[ 3 ]  =  d7cA::Point<double>( 1, 1, 0, 0 );
+  arrPoints[ 4 ]  =  d7cA::Point<double>( 1, -1, 0, 0 );
+  arrPoints[ 5 ]  =  d7cA::Point<double>( -1, 1, 0, 0 );
+  arrPoints[ 6 ]  =  d7cA::Point<double>( -1, -1, 0, 0 );
+  // ******
+  arrPoints[ 7 ]  =  d7cA::Point<double>( 1, 1, 1, 0 );
+  arrPoints[ 8 ]  =  d7cA::Point<double>( 1, 1, -1, 0 );
+  arrPoints[ 9 ]  =  d7cA::Point<double>( 1, -1, 1, 0 );
+  arrPoints[ 10 ]  =  d7cA::Point<double>( 1, -1, -1, 0 );
+  // ******
+  arrPoints[ 11 ]  =  d7cA::Point<double>( -1, 1, 1, 0 );
+  arrPoints[ 12 ]  =  d7cA::Point<double>( -1, 1, -1, 0 );
+  arrPoints[ 13 ]  =  d7cA::Point<double>( -1, -1, 1, 0 );
+  arrPoints[ 14 ]  =  d7cA::Point<double>( -1, -1, -1, 0 );
+  // ******
+  arrPoints[ 15 ]  =  d7cA::Point<double>( 1, 1, 1, 1 );
+  arrPoints[ 16 ]  =  d7cA::Point<double>( 1, 1, 1, -1 );
+  arrPoints[ 17 ]  =  d7cA::Point<double>( 1, 1, -1, 1 );
+  arrPoints[ 18 ]  =  d7cA::Point<double>( 1, 1, -1, -1 );
+  arrPoints[ 19 ]  =  d7cA::Point<double>( 1, -1, 1, 1 );
+  arrPoints[ 20 ]  =  d7cA::Point<double>( 1, -1, 1, -1 );
+  arrPoints[ 21 ]  =  d7cA::Point<double>( 1, -1, -1, 1 );
+  arrPoints[ 22 ]  =  d7cA::Point<double>( 1, -1, -1, -1 );
+  arrPoints[ 23 ]  =  d7cA::Point<double>( -1, 1, 1, 1 );
+  arrPoints[ 24 ]  =  d7cA::Point<double>( -1, 1, 1, -1 );
+  arrPoints[ 25 ]  =  d7cA::Point<double>( -1, 1, -1, 1 );
+  arrPoints[ 26 ]  =  d7cA::Point<double>( -1, 1, -1, -1 );
+  arrPoints[ 27 ]  =  d7cA::Point<double>( -1, -1, 1, 1 );
+  arrPoints[ 28 ]  =  d7cA::Point<double>( -1, -1, 1, -1 );
+  arrPoints[ 29 ]  =  d7cA::Point<double>( -1, -1, -1, 1 );
+  arrPoints[ 30 ]  =  d7cA::Point<double>( -1, -1, -1, -1 );
+  // ******
+  // ******
+  arrPoints[ 31 ]  =  d7cA::Point<double>( 0, 1, 0, 0 );
+  arrPoints[ 32 ]  =  d7cA::Point<double>( 0, -1, 0, 0 );
+  // ******
+  arrPoints[ 33 ]  =  d7cA::Point<double>( 0, 1, 1, 0 );
+  arrPoints[ 34 ]  =  d7cA::Point<double>( 0, 1, -1, 0 );
+  arrPoints[ 35 ]  =  d7cA::Point<double>( 0, -1, 1, 0 );
+  arrPoints[ 36 ]  =  d7cA::Point<double>( 0, -1, -1, 0 );
+  // ******
+  arrPoints[ 37 ]  =  d7cA::Point<double>( 0, 1, 1, 1 );
+  arrPoints[ 38 ]  =  d7cA::Point<double>( 0, 1, 1, -1 );
+  arrPoints[ 39 ]  =  d7cA::Point<double>( 0, 1, -1, 1 );
+  arrPoints[ 40 ]  =  d7cA::Point<double>( 0, 1, -1, -1 );
+  arrPoints[ 41 ]  =  d7cA::Point<double>( 0, -1, 1, 1 );
+  arrPoints[ 42 ]  =  d7cA::Point<double>( 0, -1, 1, -1 );
+  arrPoints[ 43 ]  =  d7cA::Point<double>( 0, -1, -1, 1 );
+  arrPoints[ 44 ]  =  d7cA::Point<double>( 0, -1, -1, -1 );
+  // ******
+  // ******
+  arrPoints[ 45 ]  =  d7cA::Point<double>( 0, 0, 1, 0 );
+  arrPoints[ 46 ]  =  d7cA::Point<double>( 0, 0, -1, 0 );
+  // ******
+  arrPoints[ 47 ]  =  d7cA::Point<double>( 0, 0, 1, 1 );
+  arrPoints[ 48 ]  =  d7cA::Point<double>( 0, 0, 1, -1 );
+  arrPoints[ 49 ]  =  d7cA::Point<double>( 0, 0, -1, 1 );
+  arrPoints[ 50 ]  =  d7cA::Point<double>( 0, 0, -1, -1 );
+  // ******
+  // ******
+  arrPoints[ 51 ]  =  d7cA::Point<double>( 0, 0, 0, 1 );
+  arrPoints[ 52 ]  =  d7cA::Point<double>( 0, 0, 0, -1 );
+
+  // numbers of shifts through the tree to find the corresponding elements:
+  constexpr std::size_t  aNumOperations[ numPoints ]  =  { 1, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 4, 5, 6, 7, 0, 1, 2, 1, 2, 3, 4, 1, 2, 3, 2, 3, 4, 3, 4, 5, 2, 3, 4, 3, 4, 5, 6, 2, 3, 4, 3, 4, 5, 6, 3, 4, 5, 6, 5, 6, 7, 8 };
+
+  d7cA::Octree<d7cA::Point, double>  octree;
+  octree.init( arrPoints, numPoints, d7cA::comparePoints<double> );
+
+  const std::size_t  numElements  =  octree.getNumElements();
+  BOOST_CHECK_EQUAL( numElements, numPoints );
+
+  // test the Octree::find() method:
+  for ( std::size_t i = 0; i < numPoints; ++i )
+  {
+    const double  tolerance  =  0;
+
+    const d7cA::Point<double>  p  =  arrPoints[ i ];
+    std::size_t  numOperations  =  0;
+    const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree.find( p, numOperations, tolerance );
+
+    BOOST_CHECK_EQUAL( numOperations, aNumOperations[ i ] );
+
+    BOOST_CHECK( nullptr != result );
+  }
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
