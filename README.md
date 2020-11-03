@@ -11,7 +11,7 @@ The whole implementation is a single header file: `include/octree.hpp`
 Benchmarking of the implementation is performed
 with respect to *C++ STL* `std::find_if()` and `std::search()`.
 
-![benchmark](https://github.com/uriheep/octree.didactic/tree/dev/benchmark/benchmark.png)
+![benchmark](https://github.com/uriheep/octree.didactic/blob/dev/benchmark/benchmark.png?raw=true)
 
 Each point on the plots represents a mean time value calculated for a set of
 1,000 runs. Each run comprises a search over a set of randomly generated
