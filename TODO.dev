@@ -4,3 +4,6 @@
 2. account for potential dublicate entries 
    ( i.e., when a tree already contains an element that is passed to be inserted;
     in the current implementation such an element will be inserted next to its dublicate )
+
+3. implement a public method 'remove( const H<T>&  in )' that would find an element of
+   the tree equal to 'in', remove it and adjust the tree accordingly.
