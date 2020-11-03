@@ -15,14 +15,14 @@ with respect to *C++ STL* `std::find_if()` and `std::search()`.
 
 Each point on the plots represents a mean time value calculated for a set of
 1,000 runs. Each run comprises a search over a set of randomly generated
-elements. Numbers of the randomly generated elements is given by the horizontal axis.
+elements. Numbers of the randomly generated elements are given by the horizontal axis.
 The full benchmarking set-up can be found in `benchmark/src/main.cpp`
 
 **Benchmarking results:**
 
 1. the presented pseudo-Octree implementation outperforms
    both `std::find_if` and `std::search`
-   when compiled without optimizations flags;
+   when `std::find_if` and `std::search` are compiled without optimizations flags;
 
 2. `std::find_if` and `std::search` outperform
    the presented implementation when:
@@ -51,7 +51,7 @@ any of the following conditions are true:
 
 int  main() {
 
-  // generate a set of random elements to create Octree:
+  // generate a set of random elements to create an Octree:
   std::random_device  rd;
   std::mt19937  gen( rd() );
   std::uniform_real_distribution<>  dist1( -50, 50 );
