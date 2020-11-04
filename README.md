@@ -38,6 +38,18 @@ any of the following conditions are true:
 1. new elements might be inserted into a search space;
 2. the values of elements of the search space are changed in an affine-like manner;
 
+## Dependences:
+
+1. `<algorithm>`
+2. `<cstdint>`
+3. `<cstdio>`
+
+## Build:
+
+1. to incorporate the *pseudo*-Octree into any project,
+just `#include "octree.hpp"`;
+2. `scons` to build all the code in this project ( including unit-tests, 
+benchmark and examples );
 
 ## Example:
 
