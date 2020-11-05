@@ -58,36 +58,14 @@ benchmark and examples );
 ```javascript
 #include "octree.hpp"
 
-#include <random>
-#include <cstdio>
-
-int  main() {
-
-  // generate a set of random elements to create an Octree:
-  std::random_device  rd;
-  std::mt19937  gen( rd() );
-  std::uniform_real_distribution<>  dist1( -50, 50 );
-  std::uniform_real_distribution<>  dist2( -25, 75 );
-
-  constexpr unsigned short  numElements  =  500;
-  d7cA::Point<double>  arrElements[ numElements ];
-
-  for ( unsigned short  iElem = 0; iElem < numElements; ++iElem )
-  {
-    const double  x1  =  dist1( gen );
-    const double  x2  =  dist1( gen );
-    const double  x3  =  dist1( gen );
-    const double  x4  =  dist1( gen );
-    const d7cA::Point<double>  p( x1, x2, x3, x4 );
-    arrElements[ iElem ]  =  p;
-  }
+...
 
   // construct an Octree:
   d7cA::Octree<d7cA::Point, double>  octree1;
   octree1.init( arrElements, numElements, d7cA::comparePoints<double> );
 
-  // calculate the number of newly generated elements that fall within
-  // the specified tolerance from the elements of the constructed octree1:
+  // count the number of randomly generated elements that fall within
+  // the specified tolerance from the elements of the constructed 'octree1':
   // NOTE: 'tolerance' is applied to each of the four 'coordinates' of an element
   // of a tree:
   constexpr double  tolerance  =  5;
@@ -100,16 +78,23 @@ int  main() {
     const double  x3  =  dist2( gen );
     const double  x4  =  dist2( gen );
     const d7cA::Point<double>  p( x1, x2, x3, x4 );
-    std::size_t  numOperations  =  0;
+    std::size_t  numOperations  =  0; // counts the number of shifts it took to find 'p' in the octree
     const d7cA::OctreeObj<d7cA::Point, double> * const  result  =  octree1.find( p, numOperations, tolerance );
     if ( nullptr != result )
       ++count;
   }
-
-  printf( "count = %d\n", count );
-
-  return  0;
-}
 ```
 
-What a pseudo-octree is:
+# What a pseudo-octree is:
+
+Consider a metric space *L1* over a 4-dimensional vector field ( *L1* may be regarded as [ Manhattan distance ]( https://en.wikipedia.org/wiki/Taxicab_geometry ) ).
+An element on this space is a sequence of four numbers `<n1, n2, n3, n4>` that admit all types of interpretations, e.g.: 
+
+1. `n1` may stand for a moment of time, while 
+`n2, n3, n4` may be used as Cartesian coordinates of a point in a 3D space. 
+Thus, a *pseudo*-Octree would represent a time-trajectory of a 3D point.
+
+2. `n1` may stand for a moment of time and there might be multiple elements with the same value of `n1`.
+Then, `n2, n3, n4` may be interpreted as Cartesian coordinates of points belonging to a 3D-body.
+
+
