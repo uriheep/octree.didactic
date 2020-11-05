@@ -1,8 +1,10 @@
 # octree.didactic
 
-<img src = "https://github.com/uriheep/octree.didactic/blob/dev/pics/octree_logo_github.png" width="300" height="300"> An implementation of a *pseudo*-Octree
+<img align="right" src = "https://github.com/uriheep/octree.didactic/blob/dev/pics/octree_logo_github.png" width="300" height="300">
+An implementation of a *pseudo*-Octree
 with the focus on clear and comprehensible code.
 Intended to serve demonstrative and didactic purposes.
+
 The whole implementation is a single header file: `include/octree.hpp`
 *( see an example below on how to use it )*
 
