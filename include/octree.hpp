@@ -1169,12 +1169,12 @@ struct  Point {
       }
       return  false;
     }
-    friend T  dist2( const Point&  a, const Point&  b ) noexcept
+    friend T  dist( const Point&  a, const Point&  b ) noexcept
     {
-      return  ( ( a.x1() - b.x1() ) * ( a.x1() - b.x1() )
-              + ( a.x2() - b.x2() ) * ( a.x2() - b.x2() )
-              + ( a.x3() - b.x3() ) * ( a.x3() - b.x3() )
-              + ( a.x4() - b.x4() ) * ( a.x4() - b.x4() ) );
+      return  ( std::abs( a.x1() - b.x1() )
+              + std::abs( a.x2() - b.x2() )
+              + std::abs( a.x3() - b.x3() )
+              + std::abs( a.x4() - b.x4() ) );
     }
   private:
     T  x1_, x2_, x3_, x4_;
