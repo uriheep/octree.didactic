@@ -1,5 +1,7 @@
 # octree.didactic
 
+![octree]( https://github.com/uriheep/octree.didactic/blob/dev/pics/octree_logo_github.png?raw=true )
+
 An implementation of a *pseudo*-Octree
 with the focus on clear and comprehensible code.
 Intended to serve demonstrative and didactic purposes.
@@ -46,10 +48,10 @@ any of the following conditions are true:
 
 ## Build:
 
-1. to incorporate the *pseudo*-Octree into any project,
-just `#include "octree.hpp"`;
-2. `scons` to build all the code in this project ( including unit-tests, 
+1. `scons` to build all the code in this project ( including unit-tests, 
 benchmark and examples );
+2. to incorporate the *pseudo*-Octree into any project,
+just `#include "octree.hpp"`;
 
 ## Example:
 
@@ -85,7 +87,7 @@ benchmark and examples );
   }
 ```
 
-# What a pseudo-octree is:
+## What a pseudo-octree is:
 
 Consider a metric space *L1* over a 4-dimensional vector field ( *L1* may be regarded as [ Manhattan distance ]( https://en.wikipedia.org/wiki/Taxicab_geometry ) ).
 An element on this space is a sequence of four numbers `<n1, n2, n3, n4>` that admit all types of interpretations, e.g.: 
