@@ -5,7 +5,7 @@ before_install:
   - pip install --user cpp-coveralls
   - pip install --user scons
   - sudo wget -O boost_1_74_0.tar.gz http://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download
-  - sudo tar xzvf boost_1_74_0.tar.gz
+  - sudo tar xzf boost_1_74_0.tar.gz
   - cd boost_1_74_0/
   - sudo mkdir /usr/local/lib/boost_cpp
   - sudo mkdir /usr/local/lib/boost_cpp/boost_work
