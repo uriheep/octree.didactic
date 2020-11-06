@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <algorithm>
+#include <typeinfo>
 
 namespace  d7cA {
 
