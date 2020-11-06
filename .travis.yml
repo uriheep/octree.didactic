@@ -13,6 +13,7 @@ before_install:
   - sudo ./bootstrap.sh --prefix=/usr/local/lib/boost_cpp/boost_work --with-toolset=gcc
   - sudo ./b2 --prefix=/usr/local/lib/boost_cpp/boost_work toolset=gcc --build-dir=/usr/local/lib/boost_cpp/boost_work/build-dir --with-test link=static -a
   - sudo cp -r ../boost_1_74_0/ /usr/local/lib/boost_cpp
+  - cd ..
 script:
   - scons
   - ./unit_tests/boostTest
