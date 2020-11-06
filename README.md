@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/uriheep/octree.didactic.svg?branch=main)](https://travis-ci.org/uriheep/octree.didactic)
-
+[![Coverage Status](https://coveralls.io/repos/github/uriheep/octree.didactic/badge.svg)](https://coveralls.io/github/uriheep/octree.didactic)
 # octree.didactic
 
 <img align="right" src = "https://github.com/uriheep/octree.didactic/blob/dev/pics/octree_logo_github.png" width="300" height="300">
